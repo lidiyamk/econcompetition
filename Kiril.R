@@ -8,37 +8,49 @@ library(infotheo)
 #install.packages('caret')
 library(caret)
 
-# get market data
-getSymbols(c("^GSPC", "BRK-B", "HPE", "MSFT"))
-BRK <- data.frame(`BRK-B`)
-HPE <- data.frame(HPE)
-MSFT <- data.frame(MSFT)
-rm(`BRK-B`)
-# transfer market data to a simple data frame
-GSPC <- data.frame(GSPC)
 
-# extract the date row name into a date column
+#Main --------------
+Filter <- DESI$Country == "Bulgaria"
+DESI_BG <- DESI[Filter,]
+Connectivity <- DESI_BG[which(DESI_BG$Indicator == "1 Connectivity"), ]
+Connectivity <- Connectivity[,c(1,5)]
+HumanCapital <- DESI_BG[which(DESI_BG$Indicator == "2 Human Capital"), ]
+HumanCapital <- HumanCapital[,c(1,5)]
+UseOfInternet <- DESI_BG[which(DESI_BG$Indicator == "3 Use of Internet"), ]
+UseOfInternet <- UseOfInternet[,c(1,5)]
+IntegrationOfDigitalTechnology <- DESI_BG[which(DESI_BG$Indicator == "4 Integration of Digital Technology"), ]
+IntegrationOfDigitalTechnology <- IntegrationOfDigitalTechnology[,c(1,5)]
+DigitalPublicServices <- DESI_BG[which(DESI_BG$Indicator == "5 Digital Public Services"), ]
+DigitalPublicServices <- DigitalPublicServices[,c(1,5)]
+
+Desi.Combined <- data.frame(Year = Connectivity$Year, Connectivity = Connectivity$`Weighted Score`, 
+                            Human.Capital = HumanCapital$`Weighted Score`,
+                            Use.Of.Internet = UseOfInternet$`Weighted Score`,
+                            Integration.Of.Digital.Technology = IntegrationOfDigitalTechnology$`Weighted Score`,
+                            Digital.Public.Services = DigitalPublicServices$`Weighted Score`)
+
+#Ploting -----------------
+windows()
+plot(1, type = 'n', xlim = c(2012, 2020), ylim = c(-1, 20), 
+     xlab = "Year", ylab = "Index Value")
+lines(Desi.Combined$Year, Desi.Combined$Connectivity, col = "blue", xlab = "Year", ylab = "Index Value", main = "DESI Bulgaria", type = "l")
+lines(Desi.Combined$Year, Desi.Combined$Human.Capital, col = "#FF5733", xlab = "Year", ylab = "Index Value", main = "DESI Bulgaria", type = "l")
+lines(Desi.Combined$Year, Desi.Combined$Use.Of.Internet, col = "#33FF95", xlab = "Year", ylab = "Index Value", main = "DESI Bulgaria", type = "l")
+lines(Desi.Combined$Year, Desi.Combined$Integration.Of.Digital.Technology, col = "#E42ABF", xlab = "Year", ylab = "Index Value", main = "DESI Bulgaria", type = "l")
+lines(Desi.Combined$Year, Desi.Combined$Digital.Public.Services, col = "#44AA45", xlab = "Year", ylab = "Index Value", main = "DESI Bulgaria", type = "l")
+GG <- lm(Connectivity + Human.Capital + Use.Of.Internet + Integration.Of.Digital.Technology
+         +Digital.Public.Services ~ Year, data = Desi.Combined )
+lines(Desi.Combined$Year, GG$fitted.values, col = "blue", xlab = "Year", ylab = "Index Value", main = "DESI Bulgaria", type = "l")
 
 
+library(googleVis)
+Line <- gvisLineChart(Desi.Combined, options=list(width=2000, height=1000))
+plot(Line)
 
+plot(Desi.Combined)
 
-# take random sets of sequential rows 
-new_set <- c()
-for (row_set in seq(10000)) {
-  row_quant <- sample(10:30, 1)
-  print(row_quant)
-  row_start <- sample(1:(nrow(GSPC) - row_quant), 1)
-  market_subset <- GSPC[row_start:(row_start + row_quant),]
-  market_subset <- dplyr::mutate(market_subset, 
-                                 Close_Date = max(market_subset$Close.Date),
-                                 Close_Gap=(GSPC.Close - lag(GSPC.Close))/lag(GSPC.Close) ,
-                                 High_Gap=(GSPC.High - lag(GSPC.High))/lag(GSPC.High) ,
-                                 Low_Gap=(GSPC.Low - lag(GSPC.Low))/lag(GSPC.Low),
-                                 Volume_Gap=(GSPC.Volume - lag(GSPC.Volume))/lag(GSPC.Volume),
-                                 Daily_Change=(GSPC.Close - GSPC.Open)/GSPC.Open,
-                                 Outcome_Next_Day_Direction= (lead(GSPC.Volume)-GSPC.Volume)) %>%
-    dplyr::select(-GSPC.Open, -GSPC.High, -GSPC.Low, -GSPC.Close, -GSPC.Volume, -GSPC.Adjusted, -Close.Date) %>%
-    na.omit
-  market_subset$Sequence_ID <- row_set
-  new_set <- rbind(new_set, market_subset)
-}
+#install.packages("corrplot")
+library(corrplot)
+DC <- cor(Desi.Combined)
+windows()
+corrplot(DC, method="pie")
