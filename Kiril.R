@@ -7,7 +7,7 @@ library(dplyr)
 library(infotheo)
 #install.packages('caret')
 library(caret)
-
+#21231
 
 #Main --------------
 Filter <- DESI$Country == "Bulgaria"
@@ -22,6 +22,8 @@ IntegrationOfDigitalTechnology <- DESI_BG[which(DESI_BG$Indicator == "4 Integrat
 IntegrationOfDigitalTechnology <- IntegrationOfDigitalTechnology[,c(1,5)]
 DigitalPublicServices <- DESI_BG[which(DESI_BG$Indicator == "5 Digital Public Services"), ]
 DigitalPublicServices <- DigitalPublicServices[,c(1,5)]
+
+
 
 Desi.Combined <- data.frame(Year = Connectivity$Year, Connectivity = Connectivity$`Weighted Score`, 
                             Human.Capital = HumanCapital$`Weighted Score`,
@@ -54,3 +56,27 @@ library(corrplot)
 DC <- cor(Desi.Combined)
 windows()
 corrplot(DC, method="pie")
+
+
+Filter <- DESI$Country == "Bulgaria"
+DESI_BG <- DESI[Filter,]
+
+Edu <- data.frame(geo = "Bulgaria", X2014 = c(81.1) ,X2015= c(81.9) , X2016 = c(82.3) ,X2017= c(82.8) ,X2018 = c(82.6) )
+write.csv(DESI_BG, "dESO.csv")
+
+Des_BG_score <- data.frame(Year = c(2014:2018), Score = c(4302.52, 11017, 13482.79, 17678.9, 27225.79))
+edd <- Edu[,-1]
+Des_BG_score[,3] <-c(81.1, 81.9, 82.3, 82.8, 82.6) 
+library(googleVis)
+
+library(dplyr)
+
+
+final <- read.csv("dESO.csv")
+Line <- gvisLineChart(final,  options=list(width=2000, height=800))
+plot(Line)
+Linearmodell <- lm(Desi ~ At.least.upper.secondary.educational.attainment , data = final)
+summary(Linearmodell)
+cur <- cor(final$Desi, final$At.least.upper.secondary.educational.attainment)
+cur*cur
+
