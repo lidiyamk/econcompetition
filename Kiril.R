@@ -73,10 +73,22 @@ library(dplyr)
 
 
 final <- read.csv("dESO.csv")
+final$Desi <- final$Desi*100
+final$At.least.upper.secondary.educational.attainment <- final$At.least.upper.secondary.educational.attainment*100
 Line <- gvisLineChart(final,  options=list(width=2000, height=800))
 plot(Line)
 Linearmodell <- lm(Desi ~ At.least.upper.secondary.educational.attainment , data = final)
 summary(Linearmodell)
 cur <- cor(final$Desi, final$At.least.upper.secondary.educational.attainment)
 cur*cur
+cur
 
+
+gdp_education <- read.csv("gdp_education.csv")
+Line <- gvisLineChart(gdp_education,  options=list(width=2000, height=800))
+plot(Line)
+cor(gdp_education$GDP.per.capita, gdp_education$Secondary.education)
+eduGDPLM <- lm(GDP.per.capita ~ Secondary.education, data = gdp_education )
+ll <- summary(eduGDPLM)
+ll
+ll$r.squared
